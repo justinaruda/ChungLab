@@ -141,7 +141,7 @@ for comparison_string, comparison_df in compared_list:
     compared[comparison_string] = comparison_df
     cols = comparison_df.columns
     compared_samples_df = pd.DataFrame()
-    for i in range(6):
+    for i in range(9):
         compared_samples_df[cols[i]] = comparison_df.iloc[:,i]
     compared_samples_dict = compared_samples_df.to_dict()
     dict_list.append(compared_samples_dict)
