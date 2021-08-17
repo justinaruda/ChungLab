@@ -118,6 +118,6 @@ def scatter_plot(group1,group2,key,groups):
     
     plt.title('{0} vs. {1}'.format(group1,group2))
 
-scatter_plot('A1KO_Mock_Down_Normalized_Tags_Total','A1KO_IFN_Down_Normalized_Tags_Total','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
+#scatter_plot('A1KO_Mock_Down_Normalized_Tags_Total','A1KO_IFN_Down_Normalized_Tags_Total','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
 #scatter_plot('A1KO_Mock_Down_Normalized_Tags_Assigned','A1KO_IFN_Down_Normalized_Tags_Assigned','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
 #scatter_plot('A1KO_Mock_Down_Normalized_Tags_Assessed','A1KO_IFN_Down_Normalized_Tags_Assessed','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
