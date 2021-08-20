@@ -26,36 +26,35 @@ for annot in table_df['Annotation']:
         print(annot)
 table_df['Name'] = names
 
-genes = table_df[table_df['Annotation'].str.contains('_gene')]
-exons = table_df[table_df['Annotation'].str.contains('_exon')]
-utrs = table_df[table_df['Annotation'].str.contains('_UTR')]
-introns = table_df[table_df['Annotation'].str.contains('_transcript')]
-sno_rnas = table_df[table_df['Annotation'].str.contains('SNO')]
+# genes = table_df[table_df['Annotation'].str.contains('_gene')]
+# exons = table_df[table_df['Annotation'].str.contains('_exon')]
+# utrs = table_df[table_df['Annotation'].str.contains('_UTR')]
+# introns = table_df[table_df['Annotation'].str.contains('_transcript')]
+# sno_rnas = table_df[table_df['Annotation'].str.contains('SNO')]
 
-def stacked_bar(input_file,libraries,groups):
-    input_df = pd.read_table(input_file)
-    for library in libraries:
-        genes = input_df[input_df['Annotation'].str.contains('_gene')]
-        exons = input_df[input_df['Annotation'].str.contains('_exon')]
-        utrs = input_df[input_df['Annotation'].str.contains('_UTR')]
-        introns = input_df[input_df['Annotation'].str.contains('_transcript')]
-        
-        
-        
-    
-
+# def stacked_bar(input_file,libraries,groups):
+#     input_df = pd.read_table(input_file)
+#     for library in libraries:
+#         genes = input_df[input_df['Annotation'].str.contains('_gene')]
+#         exons = input_df[input_df['Annotation'].str.contains('_exon')]
+#         utrs = input_df[input_df['Annotation'].str.contains('_UTR')]
+#         introns = input_df[input_df['Annotation'].str.contains('_transcript')]
+           
 add_groups = ['SNHG11', 'SNHG12', 'SNHG15', 'SNHG16', 'SNHG17', 'SNHG19', 'SNHG25', 'SNHG26', 'SNHG29', 'SNHG3', 'SNHG30', 'SNHG4', 'SNHG5', 'SNHG6', 'SNHG7', 'SNHG8', 'SNHG1', 'GAS5', 'RPS12', 'RPS2', 'RPS8', 'RPSA', 'RPL17', 'RPL23A', 'RPL4', 'RPL7A', 'GNL3', 'RCC1', 'RPL13A', 'RPL27A']
 
-def scatter_plot(group1,group2,key,groups):
+def scatter_plot(col1,col2,key,groups):
     global table_df
     
     add_dict = dict()
     parsed_groups = []
     for group in groups:
         if type(group) == tuple:
-            add_dict[group[0]] = group[1]
-            group = group[0]
-        parsed_groups.append(group)
+            if len(group) > 2:
+                add_dict[group[0]] = group[2]
+            group = group[0],group[1]
+            parsed_groups.append(group)
+        else:
+            parsed_groups.append((group,group))
     
     colors = cm.viridis(np.linspace(0, 1, len(groups)+1))[1:]
     
@@ -66,38 +65,44 @@ def scatter_plot(group1,group2,key,groups):
     leftover_df = table_df
    
     scatters = dict()
-    for series_key,color in zip(parsed_groups,colors):
-        if series_key in add_dict.keys():
-            cond = table_df['Annotation'].str.contains(series_key) | table_df['Name'].isin(add_dict[series_key])
-            leftover_cond = leftover_df['Annotation'].str.contains(series_key) | leftover_df['Name'].isin(add_dict[series_key])
+    for (series_name,series_key),color in zip(parsed_groups,colors):
+        if series_name in add_dict.keys():
+            if series_key == None:
+                has_key = False
+                leftover_has_key = False
+            else:
+                has_key = table_df['Annotation'].str.contains(series_key)
+                leftover_has_key = leftover_df['Annotation'].str.contains(series_key)
+            cond =  has_key | table_df['Name'].isin(add_dict[series_name])
+            leftover_cond = leftover_has_key | leftover_df['Name'].isin(add_dict[series_name])
         else:
             cond = table_df['Annotation'].str.contains(series_key)
             leftover_cond = leftover_df['Annotation'].str.contains(series_key)
         
         series_df = table_df[cond]
         leftover_df = leftover_df[~leftover_cond]
-        x = series_df[group1]
-        y = series_df[group2]
+        x = series_df[col1]
+        y = series_df[col2]
         labels = list(series_df['Name'])
-        scatters[series_key] = (ax.scatter(x,y,color=color,zorder=10,label=series_key),labels)
+        scatters[series_name] = (ax.scatter(x,y,color=color,zorder=10,label=series_name),labels)
     
-    mplcursors.cursor(scatters['SNORD'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['SNORD'][1][sel.target.index]))
-    mplcursors.cursor(scatters['SNORA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['SNORA'][1][sel.target.index]))
-    mplcursors.cursor(scatters['MT-'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['MT-'][1][sel.target.index]))
+    mplcursors.cursor(scatters['C/D Box snoRNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['C/D Box snoRNA'][1][sel.target.index]))
+    mplcursors.cursor(scatters['H/ACA Box snoRNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['H/ACA Box snoRNA'][1][sel.target.index]))
+    mplcursors.cursor(scatters['Mitochondrial RNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['Mitochondrial RNA'][1][sel.target.index]))
     mplcursors.cursor(scatters['Embedded snoRNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['Embedded snoRNA'][1][sel.target.index]))
     
-    x = leftover_df[group1]
-    y = leftover_df[group2]
+    x = leftover_df[col1]
+    y = leftover_df[col2]
     labels = list(leftover_df['Name'])
     scatters['leftover'] = ax.scatter(x,y,color='#1c1c1c',label='Other'),labels
     ax.legend()
     
-    ax.set_xlabel(group1)
-    ax.set_ylabel(group2)
+    ax.set_xlabel(col1.replace("_"," "))
+    ax.set_ylabel(col2.replace("_"," "))
     
-    mplcursors.cursor(scatters['SNORD'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['SNORD'][1][sel.target.index]))
-    mplcursors.cursor(scatters['SNORA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['SNORA'][1][sel.target.index]))
-    mplcursors.cursor(scatters['MT-'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['MT-'][1][sel.target.index]))
+    # mplcursors.cursor(scatters['C/D Box snoRNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['C/D Box snoRNA'][1][sel.target.index]))
+    # mplcursors.cursor(scatters['H/ACA Box snoRNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['H/ACA Box snoRNA'][1][sel.target.index]))
+    # mplcursors.cursor(scatters['Mitochondrial RNA'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['Mitochondrial RNA'][1][sel.target.index]))
     mplcursors.cursor(scatters['leftover'][0],multiple=True).connect("add", lambda sel: sel.annotation.set_text(scatters['leftover'][1][sel.target.index]))
 
     
@@ -116,8 +121,8 @@ def scatter_plot(group1,group2,key,groups):
     ax.set_xlim(lims)
     ax.set_ylim(lims)
     
-    plt.title('{0} vs. {1}'.format(group1,group2))
+    plt.title('{0} vs. {1}'.format(col1,col2).replace('_'," "))
 
-#scatter_plot('A1KO_Mock_Down_Normalized_Tags_Total','A1KO_IFN_Down_Normalized_Tags_Total','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
+scatter_plot('A1KO_Mock_Down_Normalized_Tags_Total','A1KO_IFN_Down_Normalized_Tags_Total','_gene',[("Embedded snoRNA",None,add_groups),('C/D Box snoRNA','SNORD'),('H/ACA Box snoRNA','SNORA'),('Mitochondrial RNA','MT-')])
 #scatter_plot('A1KO_Mock_Down_Normalized_Tags_Assigned','A1KO_IFN_Down_Normalized_Tags_Assigned','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
 #scatter_plot('A1KO_Mock_Down_Normalized_Tags_Assessed','A1KO_IFN_Down_Normalized_Tags_Assessed','_gene',[("Embedded snoRNA",add_groups),'SNORD','SNORA','MT-'])
