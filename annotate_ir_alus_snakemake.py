@@ -9,6 +9,7 @@ import pandas as pd
 import HTSeq
 import re
 import multiprocessing
+import HTSeq
 
 def remove_empty_sets(tuples):
     new_tuples = []
@@ -19,7 +20,9 @@ def remove_empty_sets(tuples):
 
 def annotate(input_file,clip_df):
     global family_gas
+    global gene_gas
     print("Annotating {0}...".format(input_file))
+    clip_df['Annotation'] = 'None'
     clip_df['Repeat'] = 'None'
     clip_df['Repeat_Context'] = 'None'
     for idx,row in clip_df.iterrows():
@@ -28,9 +31,16 @@ def annotate(input_file,clip_df):
             region = iv_match.group(1)
             start = int(iv_match.group(2))
             end = int(iv_match.group(3))
+            strand = iv_match.group(4)
+            print(strand)
         else:
             continue
         clip_iv = HTSeq.GenomicInterval(region, start, end)
+        crosslink_pos = HTSeq.GenomicPosition(region,start+round((end-start)/2),strand=strand)
+        annot_set = gene_gas[crosslink_pos]
+        if len(annot_set) != 0:
+            annot_str = str(annot_set)
+            clip_df.at[idx,'Annotation'] = annot_str
         families  = []
         sets = [entry for entry in family_gas[clip_iv].steps()]
         sets = remove_empty_sets(sets)
@@ -65,10 +75,11 @@ def annotate(input_file,clip_df):
     return (input_file,clip_df)
 
 annotation_file = snakemake.params.annotation
+genome_annotation_file = snakemake.params.genome_annotation
 
 clip_dfs = list()
 print('Reading input files...')
-for input_file in snakemake.input:
+for input_file in snakemake.input.files:
     clip_df = pd.read_table(input_file)
     clip_dfs.append((input_file,clip_df))
 
@@ -84,9 +95,18 @@ for row in repeat_annots.iterrows():
     family_gas[iv] += (row['repName'], row['repFamily'],iv,row['strand'])
 
 print('Repeat annotation file loaded...')
+
+
+print('Loading genomic annotation file')
+
+gene_gas = HTSeq.GenomicArrayOfSets("auto",stranded=True)
+genomic_annotations = HTSeq.GFF_Reader(genome_annotation_file,end_included=True)
+for annot in genomic_annotations:
+    gene_gas[annot.iv] = annot.name
+
 print('Starting annotation...')
 
-iv_regex = re.compile(r'(chr\d*):(\d*)-(\d*)')
+iv_regex = re.compile(r'(chr\d*):(\d*)-(\d*).*\(([+-])\)')
 
 with multiprocessing.Pool(processes=snakemake.threads) as pool:
         annotated_dfs = pool.starmap(annotate, clip_dfs)

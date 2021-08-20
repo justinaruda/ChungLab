@@ -8,11 +8,11 @@ def plot_pies(name,table_df,loci_type):
     stabilized_pcts = dict()
     no_change_pcts = dict()
     
-    destabilized = table_df[table_df['Raw_FC']<1]
+    destabilized = table_df[table_df['Raw_FC']<=0.95]
     destabilized_pct = len(destabilized.index.values)/len(table_df.index.values)
-    stabilized = table_df[table_df['Raw_FC']>1]
+    stabilized = table_df[table_df['Raw_FC']>=1.05]
     stabilized_pct = len(stabilized.index.values)/len(table_df.index.values)
-    no_change = table_df[table_df['Raw_FC']==1]
+    no_change = table_df[(table_df['Raw_FC']>0.95) & (table_df['Raw_FC']<1.05)]
     no_change_pct = len(no_change.index.values)/len(table_df.index.values)
     
     destabilized_ir_clusters = destabilized[destabilized['Repeat_Context']=='ir_cluster']
@@ -142,7 +142,7 @@ def plot_pies(name,table_df,loci_type):
     # con.set_color([0, 0, 0])
     # ax2.add_artist(con)
     # con.set_linewidth(2)
-    plt.savefig(r'C:/Users/justi/Desktop/RNAfold/figures/{0}_{1}.png'.format(name,loci_type))
+#    plt.savefig(r'C:/Users/justi/Desktop/RNAfold/figures/{0}_{1}.png'.format(name,loci_type))
     plt.show()
     
     fig = plt.figure(figsize=(16, 10))
@@ -178,15 +178,15 @@ def plot_pies(name,table_df,loci_type):
 #table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/A1KO_Mock_Down.pool.tag.uniq.del.CITS.s30.singleton.1001nt.unedited_vs_A1KO_Mock_Down.pool.tag.uniq.del.CITS.s30.singleton.1001nt.edited_compared.ir.out')
 
 for table in ['A1KO_Mock_Down','A1KO_IFN_Down','A1KO_Mock_Up','A1KO_IFN_Up']:
-    CITS_table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/expressed/{0}.pool.tag.uniq.del.CITS.s30.singleton.1001nt.unedited_vs_{0}.pool.tag.uniq.del.CITS.s30.singleton.1001nt.edited_compared.ir.out'.format(table))
+    CITS_table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/annotated/{0}.pool.tag.uniq.del.CITS.s30.singleton.1001nt.unedited_vs_{0}.pool.tag.uniq.del.CITS.s30.singleton.1001nt.edited_compared.ir.out'.format(table))
     plot_pies(table,CITS_table_df,'CITS')
-    peaks_table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/peaks/expressed/{0}.pool.tag.uniq.peak.sig.1001nt.unedited_vs_{0}.pool.tag.uniq.peak.sig.1001nt.edited_compared.ir.out'.format(table))    
-    plot_pies(table,peaks_table_df,'Peaks')
+#    peaks_table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/peaks/annotated/{0}.pool.tag.uniq.peak.sig.1001nt.unedited_vs_{0}.pool.tag.uniq.peak.sig.1001nt.edited_compared.ir.out'.format(table))    
+#    plot_pies(table,peaks_table_df,'Peaks')
 
 #table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/random_intervals.1001nt.unedited_vs_random_intervals.1001nt.edited_compared.ir.out')
 
 # table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/old/random_intervals.1001nt.unedited_vs_random_intervals.1001nt.edited_compared.ir.out')
 # plot_pies('Random_old',table_df,'Loci')
 
-table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/expressed/random_intervals.1001nt.unedited_vs_random_intervals.1001nt.edited_compared.ir.out')
+table_df = pd.read_table(r'C:/Users/justi/Desktop/RNAfold/CITS/annotated/random_intervals.1001nt.unedited_vs_random_intervals.1001nt.edited_compared.ir.out')
 plot_pies('Random',table_df,'Loci')

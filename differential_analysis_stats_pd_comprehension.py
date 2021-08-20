@@ -33,8 +33,17 @@ def align_dicts(dicts):
 def compare(compare_string,first,second):
     global master_dict
     global stats_dict
+    
+    tags_match = tags_regex.search(compare_string)
+    if tags_match != None:
+        tags = tags_match.group(1)
+    
     first_name,first_ext = first
     second_name,second_ext = second
+    
+    first_name = "{0}_{1}".format(first_name,tags)
+    second_name = "{0}_{1}".format(second_name,tags)
+    
     print("Comparing {0} and {1}...".format(first_name,second_name))
     first_dict = {first_name:master_dict[first]}
     first_stats = stats_dict[first]
@@ -73,6 +82,7 @@ def compare(compare_string,first,second):
         
     return (compare_string, aligned_df)
 
+tags_regex = re.compile(r'(?:.*\/|^).*\.(.*)\.[^.]*')
 name_regex = re.compile(r'(?:.*\/|^)(.*?)\.')
 ext_regex = re.compile(r'(?:.*\/|^).*?\.(.*)')
 path_regex = re.compile(r'(.*\/|^).*?\.')
@@ -119,19 +129,18 @@ for input_file in snakemake.input:
     stats_dict[(name,ext)] = parse_stats(stats_file)
     
 compared = dict()
-to_compare = set() 
+to_compare = set()
 
 for first_sample in master_dict:
     ext = first_sample[1]
     for second_sample in master_dict:
         if second_sample[1] != ext:
             continue
-        comparison = "{0}_vs_{1}".format(first_sample[0],second_sample[0])
+        comparison = "{0}_vs_{1}{2}".format(first_sample[0],second_sample[0],ext)
         if comparison not in comparisons:
             continue
         else:
-            comparison_string = comparison+ext
-            to_compare.add((comparison_string,first_sample,second_sample))
+            to_compare.add((comparison,first_sample,second_sample))
 
 with multiprocessing.Pool(processes=snakemake.threads) as pool:
         compared_list = pool.starmap(compare, to_compare)
