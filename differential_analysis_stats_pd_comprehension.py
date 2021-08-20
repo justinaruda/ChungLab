@@ -82,7 +82,7 @@ def compare(compare_string,first,second):
         
     return (compare_string, aligned_df)
 
-tags_regex = re.compile(r'(?:.*\/|^).*\.(.*)\.[^.]*')
+tags_regex = re.compile(r'(?:.*\/|^).*\.(.*)$')
 name_regex = re.compile(r'(?:.*\/|^)(.*?)\.')
 ext_regex = re.compile(r'(?:.*\/|^).*?\.(.*)')
 path_regex = re.compile(r'(.*\/|^).*?\.')
@@ -127,20 +127,21 @@ for input_file in snakemake.input:
         sample_dict[row[0]] = row[1]
     master_dict[(name,ext)] = sample_dict
     stats_dict[(name,ext)] = parse_stats(stats_file)
-    
+  
 compared = dict()
 to_compare = set()
 
 for first_sample in master_dict:
     ext = first_sample[1]
     for second_sample in master_dict:
-        if second_sample[1] != ext:
+        if second_sample[1] != ext or second_sample[0] == first_sample[0]:
             continue
         comparison = "{0}_vs_{1}{2}".format(first_sample[0],second_sample[0],ext)
-        if comparison not in comparisons:
+        if comparison in comparisons:
             continue
         else:
             to_compare.add((comparison,first_sample,second_sample))
+            comparisons.add(comparison)
 
 with multiprocessing.Pool(processes=snakemake.threads) as pool:
         compared_list = pool.starmap(compare, to_compare)
